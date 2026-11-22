@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照着设计稿做一张卡片，我改了三遍才对齐 · echoed</title>
+<meta name="description" content="盒模型、间距、hover 位移，三个坑一次踩完。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%23C0673A'/></svg>">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../index.html">echoed<span>.</span></a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../about.html">关于</a>
+      <a href="https://github.com/echoed-jiang" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <article class="article">
+    <h1>照着设计稿做一张卡片，我改了三遍才对齐</h1>
+    <p class="article-meta">2026 年 11 月 16 日 · 前端</p>
+
+    <p>任务很简单：照着设计稿，做一个 330×168 的卡片，圆角 18、内边距 26、有个浅色标签。看起来十分钟的事，做完对不上稿子，来回改了三遍。</p>
+
+    <h2>坑一：宽度永远差一截</h2>
+
+    <p>写了 <code>width: 330px; padding: 26px;</code>，量出来是 382px。</p>
+
+    <p>因为 CSS 默认的盒模型里，<code>width</code> 只算内容区，内边距和边框是**额外加在**外面的。解决办法就一行，写在样式表最前面：</p>
+
+    <pre><code>*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}</code></pre>
+
+    <p>加上之后，<code>width</code> 就包含内边距和边框了，330 就是 330。这一行不加，后面所有对齐都会莫名差个几十像素。</p>
+
+    <h2>坑二：三张卡片高度不齐</h2>
+
+    <p>三张卡放一行，用 flex 排的。结果中间那张要求比两边高出 16px，怎么也高不出来——因为 flex 默认 <code>align-items: stretch</code>，会把所有子元素拉成一样高。</p>
+
+    <p>两种解法，我用了第一种：</p>
+
+    <ul>
+      <li>父容器加 <code>align-items: flex-start</code>，再给中间那张 <code>transform: translateY(-16px)</code></li>
+      <li>或者整行改用 grid，加 <code>align-items: start</code></li>
+    </ul>
+
+    <blockquote>flex 的「拉伸」特性对卡片列表很方便，对「有高有低」的设计就是灾难。先想清楚要哪种。</blockquote>
+
+    <h2>坑三：hover 的时候整页在抖</h2>
+
+    <p>最初是这么写 hover 的：</p>
+
+    <pre><code>.card:hover {
+  margin-top: -4px;
+}</code></pre>
+
+    <p>鼠标一进去，下面的元素跟着往上跳，整页在抖。因为改 <code>margin</code> 会触发重新排版。</p>
+
+    <p>改成位移就没这问题了：</p>
+
+    <pre><code>.card {
+  transition: transform .2s, box-shadow .2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(122, 88, 62, .10);
+}</code></pre>
+
+    <p><code>transform</code> 不改变文档流，只改变绘制位置，所以又快又不会带崩邻居。</p>
+
+    <h2>真正学到的三件事</h2>
+
+    <ol>
+      <li><code>box-sizing: border-box</code> 是地基，第一行就写。</li>
+      <li>间距统一交给 <code>gap</code>，别用 <code>margin</code> 一个个凑，也别用 <code>&lt;br&gt;</code>。</li>
+      <li>所有位移、缩放都用 <code>transform</code>，再配 <code>transition</code> 0.2s，观感立刻上一个台阶。</li>
+    </ol>
+
+    <p>还有个小细节：日期这种小标签，加 <code>letter-spacing: 2px</code> 会显得很规整；中文标题加 <code>-0.5px</code> 反而更紧致。这类一两个像素的事，决定了「像稿子」还是「像练习」。</p>
+
+    <p><a class="back" href="../index.html">← 返回首页</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">© 2026 echoed · 由 GitHub Pages 托管</div>
+</footer>
+
+</body>
+</html>

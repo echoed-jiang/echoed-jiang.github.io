@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两个 Person 类，让我两小时没编译出来 · echoed</title>
+<meta name="description" content="报错说方法不存在，真凶却是另一个文件里的同名类。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%23C0673A'/></svg>">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../index.html">echoed<span>.</span></a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../about.html">关于</a>
+      <a href="https://github.com/echoed-jiang" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <article class="article">
+    <h1>两个 Person 类，让我两小时没编译出来</h1>
+    <p class="article-meta">2026 年 11 月 22 日 · 排错</p>
+
+    <p>代码昨天还能跑，今天一按运行，整个项目红了。VS Code 给的提示是这三行：</p>
+
+    <pre><code>The method keepPet(Cat, String) is undefined for the type Person
+The type Person is already defined
+The constructor Person(String, int) is undefined</code></pre>
+
+    <p>第一反应当然是「我哪里写错了」。把 <code>Polymorphism.java</code> 从头到尾看了一遍，<code>keepPet</code> 明明白白写在 <code>Person</code> 里，参数类型也对得上。改了半天，报错一个字都没变。</p>
+
+    <h2>真凶是中间那句</h2>
+
+    <p><code>The type Person is already defined</code>——这个 Person 已经被定义过了。可我这个文件里只有一个 Person。</p>
+
+    <p>问题出在另一个文件：练继承的时候，我在 <code>ExtendsDemo3.java</code> 里也写了一个 <code>Person</code>。而这两个文件的第一行都没有 <code>package</code>，于是它们全被算进了同一个「默认包」。</p>
+
+    <p>Java 的规矩是：<strong>一个包里不能有两个同名类</strong>。编译器不知道我说的 Person 是哪一个，索性把相关的一切都判成不存在——所以 <code>keepPet</code> 和构造器跟着一起报错，看起来像我写错了。</p>
+
+    <blockquote>包（package）不是靠文件夹分的，是靠文件第一行的 <code>package</code> 语句。子文件夹里的文件不写 package，就全在默认包里。</blockquote>
+
+    <h2>怎么确认的</h2>
+
+    <p>不看 VS Code，直接用 javac 试：</p>
+
+    <ul>
+      <li>只编译 <code>HARD TEST</code> 这一个文件夹 → 通过，0 个错误</li>
+      <li>把整个 <code>java.test</code> 一起编译 → <code>duplicate class: Person</code>、<code>duplicate class: Student</code></li>
+    </ul>
+
+    <p>到这里就确定了：代码没问题，是我把十几个练习塞进了同一个工程。</p>
+
+    <h2>怎么解决</h2>
+
+    <ol>
+      <li>把这个练习的文件夹单独挪出去，作为独立文件夹打开。两个 <code>Person</code> 立刻分属两个工程，互不相干。</li>
+      <li>清一次 Java 语言服务器缓存（<code>Java: Clean Java Language Server Workspace</code>）。因为之前还残留了 <code>fu.class</code> 和 <code>Fu.class</code> 这种只差大小写的产物，构建时会直接抛异常中断。</li>
+    </ol>
+
+    <p>如果非要把所有练习放一个工程，那就得老老实实按包组织：目录名必须是合法包名（小写、无空格、无中文），每个文件第一行写 <code>package hard;</code> 之类。<code>HARD TEST</code> 这种带空格的名字，永远当不了包名。</p>
+
+    <h2>教训</h2>
+
+    <ol>
+      <li>看到「方法不存在」，先往上翻，看有没有「已经定义」——后者才是原因。</li>
+      <li>一个练习一个文件夹。省下的不是磁盘空间，是排错时间。</li>
+      <li>编译器报的错经常不是根因，只是根因的影子。</li>
+    </ol>
+
+    <p><a class="back" href="../index.html">← 返回首页</a></p>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">© 2026 echoed · 由 GitHub Pages 托管</div>
+</footer>
+
+</body>
+</html>
